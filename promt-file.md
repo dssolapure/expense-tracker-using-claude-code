@@ -22,6 +22,7 @@ Extend base.html if it exists, otherwise match the style of
 landing.html.
 3. In @templates/landing.html, update the "Terms and Conditions"
 footer link href from "#" to "/terms".
+4. Make sure the appearance looks like the website's theme
 
 git commit -m "landing: add terms and conditions page and route”
 

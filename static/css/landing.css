@@ -1,0 +1,202 @@
+/* ------------------------------------------------------------------ */
+/* Hero — centered layout override                                     */
+/* ------------------------------------------------------------------ */
+
+.hero--centered {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 4rem 2rem 4rem;
+    max-width: 800px;
+    gap: 3rem;
+}
+
+.hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.hero--centered .hero-subtitle {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.hero--centered .hero-actions {
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Badge with green dot */
+.hero-badge--dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-badge--dot::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+}
+
+/* Title — two-tone */
+.hero--centered .hero-title {
+    font-size: clamp(2.75rem, 6vw, 4.25rem);
+    line-height: 1.1;
+    margin-bottom: 0;
+}
+
+.hero-title-accent {
+    display: block;
+    color: var(--accent);
+    font-style: normal;
+}
+
+/* Both CTA buttons filled black */
+.hero--centered .btn-primary + .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.hero--centered .btn-primary + .btn-primary:hover {
+    background: var(--accent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Browser mock card                                                   */
+/* ------------------------------------------------------------------ */
+
+.hero-browser {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--paper-warm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.07);
+}
+
+.browser-chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.traffic-light--red    { background: #ff5f57; }
+.traffic-light--yellow { background: #febc2e; }
+.traffic-light--green  { background: #28c840; }
+
+.browser-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Stat tiles                                                          */
+/* ------------------------------------------------------------------ */
+
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.stat-tile {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: left;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.stat-note {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+}
+
+.stat-note--danger  { color: var(--danger); }
+.stat-note--success { color: var(--accent); }
+
+/* ------------------------------------------------------------------ */
+/* Category bars                                                       */
+/* ------------------------------------------------------------------ */
+
+.cat-bars {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.cat-bar-row {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cat-name {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cat-track {
+    height: 8px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.cat-fill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.cat-fill--amber  { background: #c17f24; }
+.cat-fill--blue   { background: #3b82f6; }
+.cat-fill--indigo { background: #6366f1; }
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+    .stat-row { grid-template-columns: 1fr; }
+    .hero--centered .hero-actions { flex-direction: column; align-items: center; }
+}
