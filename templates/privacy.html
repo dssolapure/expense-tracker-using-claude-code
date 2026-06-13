@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="static-page">
+    <div class="static-page-inner">
+
+        <div class="static-page-header">
+            <div class="hero-badge">Legal</div>
+            <h1 class="static-page-title">Privacy Policy</h1>
+            <p class="static-page-meta">Last updated: June 2026</p>
+        </div>
+
+        <div class="static-page-card">
+
+            <div class="terms-section">
+                <h2 class="terms-heading">1. Data We Collect</h2>
+                <p class="terms-body">
+                    When you create an account and use Spendly, we collect the following information:
+                </p>
+                <ul class="terms-list">
+                    <li>Account details — your name and email address provided at registration.</li>
+                    <li>Expense data — amounts, categories, dates, and descriptions you enter.</li>
+                    <li>Usage data — basic information about how you interact with the Service (e.g. pages visited, session duration).</li>
+                </ul>
+                <p class="terms-body">
+                    We do not collect payment information, government IDs, or any sensitive financial account details.
+                </p>
+            </div>
+
+            <div class="terms-section">
+                <h2 class="terms-heading">2. How We Use Your Data</h2>
+                <p class="terms-body">
+                    The data we collect is used solely to provide and improve the Service. Specifically:
+                </p>
+                <ul class="terms-list">
+                    <li>To create and manage your account.</li>
+                    <li>To display your expense history, summaries, and reports.</li>
+                    <li>To diagnose technical issues and improve app reliability.</li>
+                </ul>
+                <p class="terms-body">
+                    We will never sell your personal data or use it for advertising purposes.
+                </p>
+            </div>
+
+            <div class="terms-section">
+                <h2 class="terms-heading">3. Data Storage</h2>
+                <p class="terms-body">
+                    Your data is stored securely on our servers. We use industry-standard practices including
+                    encrypted connections (HTTPS) and hashed passwords to protect your information. We retain
+                    your data for as long as your account is active. You may request deletion of your account
+                    and associated data at any time by contacting us.
+                </p>
+            </div>
+
+            <div class="terms-section">
+                <h2 class="terms-heading">4. Third-Party Services</h2>
+                <p class="terms-body">
+                    Spendly does not share your personal data with third-party advertising or analytics
+                    companies. We may use trusted infrastructure providers (e.g. hosting, database services)
+                    to operate the Service. These providers access data only as needed to perform their
+                    functions and are bound by confidentiality obligations.
+                </p>
+            </div>
+
+            <div class="terms-section">
+                <h2 class="terms-heading">5. Your Rights</h2>
+                <p class="terms-body">
+                    You have the right to access, correct, or delete the personal data we hold about you.
+                    You may also request a copy of your data in a portable format. To exercise any of these
+                    rights, please contact us using the details below.
+                </p>
+            </div>
+
+            <div class="terms-section">
+                <h2 class="terms-heading">6. Contact Us</h2>
+                <p class="terms-body">
+                    If you have any questions or concerns about this Privacy Policy or how we handle your
+                    data, please reach out through the Spendly support channel. We will respond within
+                    a reasonable timeframe.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="static-page-footer">
+            <a href="{{ url_for('landing') }}" class="btn-ghost">← Back to home</a>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
