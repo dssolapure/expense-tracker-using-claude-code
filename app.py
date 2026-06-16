@@ -1,7 +1,9 @@
-from flask import Flask, render_template
-from database.db import get_db, init_db, seed_db
+from flask import Flask, render_template, request, redirect, url_for, abort, session
+from werkzeug.security import check_password_hash
+from database.db import get_db, init_db, seed_db, get_user_by_email
 
 app = Flask(__name__)
+app.secret_key = "spendly-dev-secret"
 
 with app.app_context():
     init_db()
@@ -22,9 +24,27 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html")
+    if request.method == "GET":
+        return render_template("login.html")
+
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
+
+    if not email:
+        return render_template("login.html", error="Email is required.")
+    if not password:
+        return render_template("login.html", error="Password is required.")
+
+    user = get_user_by_email(email)
+
+    if user is None or not check_password_hash(user["password_hash"], password):
+        return render_template("login.html", error="Invalid email or password.")
+
+    session.clear()
+    session["user_id"] = user["id"]
+    return redirect(url_for("profile"))
 
 
 @app.route("/terms")
@@ -43,7 +63,8 @@ def privacy():
 
 @app.route("/logout")
 def logout():
-    return "Logout — coming in Step 3"
+    session.clear()
+    return redirect(url_for("landing"))
 
 
 @app.route("/profile")

@@ -1,9 +1,31 @@
+# Plan: Database Setup (Step 1)
+
+## Context
+
+`database/db.py` is currently a stub with only comments. No DB exists. All future steps (auth, expenses, profile) depend on this being correctly implemented first. The goal is to implement the three required helper functions and wire them into `app.py` startup.
+
+---
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `database/db.py` | Implement `get_db()`, `init_db()`, `seed_db()` from scratch |
+| `app.py` | Add import + startup wiring with `app.app_context()` |
+
+---
+
+## Implementation
+
+### `database/db.py`
+
+```python
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "spendly.db")
+DB_PATH  = os.path.join(BASE_DIR, "spendly.db")
 
 
 def get_db():
@@ -71,12 +93,42 @@ def seed_db():
     )
     conn.commit()
     conn.close()
+```
 
+### `app.py` — two changes only
 
-def get_user_by_email(email):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
-    user = cursor.fetchone()
-    conn.close()
-    return user
+1. Add import after existing import line:
+```python
+from database.db import get_db, init_db, seed_db
+```
+
+2. Add startup block immediately after `app = Flask(__name__)`:
+```python
+with app.app_context():
+    init_db()
+    seed_db()
+```
+
+---
+
+## Key Decisions
+
+- **`DB_PATH` via `os.path.abspath(__file__)`** — anchors `spendly.db` to project root regardless of working directory
+- **`PRAGMA foreign_keys = ON` in `get_db()`** — SQLite resets FK enforcement per connection; must be in the factory
+- **`DEFAULT (datetime('now'))` with parentheses** — without parens, SQLite stores it as a literal string, not a function call
+- **`seed_db()` guard: `SELECT COUNT(*) FROM users`** — cheapest duplicate prevention; returns early if any user exists
+- **`cursor.lastrowid`** — captures demo user's auto-generated id instead of hardcoding `1`
+- **INR amounts** — all sample amounts use realistic Indian household figures (₹75–₹2500)
+- All 7 categories covered; Food appears twice (realistic), dates span June 2026
+
+---
+
+## Verification
+
+1. Run `python app.py` — server starts on port 5001, no errors
+2. Verify `spendly.db` is created in project root
+3. Open DB with sqlite3 CLI or DB Browser:
+   - `SELECT * FROM users;` → 1 row, hashed password
+   - `SELECT * FROM expenses;` → 8 rows across 7 categories
+4. Restart `python app.py` — verify `seed_db()` does not duplicate rows (still 1 user, 8 expenses)
+5. Test FK enforcement: attempt to insert an expense with a non-existent `user_id` — should raise `IntegrityError`
