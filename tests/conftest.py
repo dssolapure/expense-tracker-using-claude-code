@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-
 import app as flask_app
 import database.db as db_module
+from database.db import init_db
 
 
 @pytest.fixture()
@@ -18,6 +18,7 @@ def app():
 
     with flask_app.app.app_context():
         db_module.init_db()
+        init_db()
 
     yield flask_app.app
 

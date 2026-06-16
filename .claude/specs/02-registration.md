@@ -47,3 +47,4 @@ No new dependencies.
 - [ ] Submitting with a blank name re-renders the form (200) with the message "Name is required."
 - [ ] `create_user()` returns `None` (without raising) when the email already exists
 - [ ] All 15 tests in `tests/test_registration.py` pass with `pytest`
+
