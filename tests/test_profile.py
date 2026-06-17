@@ -8,7 +8,7 @@ def _insert_user(email="profile@example.com", password="password123"):
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-        ("Nitish Kumar", email, generate_password_hash(password)),
+        ("Dayanand Solapure", email, generate_password_hash(password)),
     )
     conn.commit()
     user_id = cursor.lastrowid
@@ -26,7 +26,7 @@ def test_profile_without_session_redirects(client):
 
 def test_profile_without_session_does_not_render_page(client):
     response = client.get("/profile", follow_redirects=False)
-    assert b"Nitish Kumar" not in response.data
+    assert b"Dayanand Solapure" not in response.data
 
 
 # --- Authenticated access ---
@@ -44,7 +44,7 @@ def test_profile_shows_user_name(client):
     with client.session_transaction() as sess:
         sess["user_id"] = user_id
     response = client.get("/profile")
-    assert b"Nitish Kumar" in response.data
+    assert b"Dayanand Solapure" in response.data
 
 
 def test_profile_shows_user_email(client):
@@ -52,7 +52,7 @@ def test_profile_shows_user_email(client):
     with client.session_transaction() as sess:
         sess["user_id"] = user_id
     response = client.get("/profile")
-    assert b"nitish@example.com" in response.data
+    assert b"Dayanand@example.com" in response.data
 
 
 def test_profile_shows_total_spent(client):
