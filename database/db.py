@@ -97,3 +97,102 @@ def create_user(name, email, password_hash):
         conn.close()
         return None
 
+
+def get_user_by_id(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
+def _fmt_amount(amount_float):
+    return f"₹{int(amount_float):,}"
+
+
+def _fmt_date(date_str):
+    from datetime import datetime
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    return dt.strftime("%#d %b %Y")
+
+
+def _fmt_member_since(created_at_str):
+    from datetime import datetime
+    dt = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S")
+    return dt.strftime("%B %Y")
+
+
+# Stubs — replaced by parallel subagents
+def get_user_expenses(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT date, description, category, amount FROM expenses "
+        "WHERE user_id = ? ORDER BY date DESC LIMIT 10",
+        (user_id,),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "date": _fmt_date(row["date"]),
+            "description": row["description"],
+            "category": row["category"],
+            "amount": _fmt_amount(row["amount"]),
+        }
+        for row in rows
+    ]
+
+
+def get_user_stats(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt "
+        "FROM expenses WHERE user_id = ?",
+        (user_id,),
+    )
+    row = cursor.fetchone()
+    total_float, count = row["total"], row["cnt"]
+    cursor.execute(
+        "SELECT category, SUM(amount) AS cat_total FROM expenses "
+        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+        (user_id,),
+    )
+    top_row = cursor.fetchone()
+    conn.close()
+    return {
+        "total_spent": _fmt_amount(total_float) if count > 0 else "₹0",
+        "transaction_count": count,
+        "top_category": top_row["category"] if top_row else "—",
+    }
+
+
+def get_user_categories(user_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT COALESCE(SUM(amount), 0) AS grand_total FROM expenses WHERE user_id = ?",
+        (user_id,),
+    )
+    grand_total = cursor.fetchone()["grand_total"]
+    if grand_total == 0:
+        conn.close()
+        return []
+    cursor.execute(
+        "SELECT category, SUM(amount) AS cat_total FROM expenses "
+        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 7",
+        (user_id,),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "name": row["category"],
+            "total": _fmt_amount(row["cat_total"]),
+            "pct": round(row["cat_total"] / grand_total * 100),
+        }
+        for row in rows
+    ]
+

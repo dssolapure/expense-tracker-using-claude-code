@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
+from database.db import (
+    get_db, init_db, seed_db, create_user, get_user_by_email,
+    get_user_by_id, _fmt_member_since,
+    get_user_expenses, get_user_stats, get_user_categories,
+)
 
 app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
@@ -98,38 +102,25 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
+    # --- SECTION A: user lookup + stale session guard ---
+    db_user = get_user_by_id(session["user_id"])
+    if db_user is None:
+        session.clear()
+        return redirect(url_for("login"))
     user = {
-        "name": "Dayanand Solapure",
-        "email": "dayanandsolapure@gmail.com",
-        "member_since": "January 2026",
+        "name": db_user["name"],
+        "email": db_user["email"],
+        "member_since": _fmt_member_since(db_user["created_at"]),
     }
 
-    stats = {
-        "total_spent": "₹6,374",
-        "transaction_count": 8,
-        "top_category": "Bills",
-    }
+    # --- SECTION B: transaction history (Subagent 1) ---
+    expenses = get_user_expenses(session["user_id"])
 
-    expenses = [
-        {"date": "15 Jun 2026", "description": "Electricity bill",      "category": "Bills",         "amount": "₹2,500"},
-        {"date": "13 Jun 2026", "description": "Clothing — kurta set",  "category": "Shopping",      "amount": "₹1,350"},
-        {"date": "11 Jun 2026", "description": "OTT subscription",      "category": "Entertainment", "amount": "₹499"},
-        {"date": "09 Jun 2026", "description": "Pharmacy — vitamins",   "category": "Health",        "amount": "₹600"},
-        {"date": "07 Jun 2026", "description": "Evening snacks",        "category": "Food",          "amount": "₹180"},
-        {"date": "03 Jun 2026", "description": "Monthly bus pass",      "category": "Transport",     "amount": "₹850"},
-        {"date": "01 Jun 2026", "description": "Lunch at Darshini",     "category": "Food",          "amount": "₹320"},
-        {"date": "15 Jun 2026", "description": "Stationery — notebook", "category": "Other",         "amount": "₹75"},
-    ]
+    # --- SECTION C: summary stats (Subagent 2) ---
+    stats = get_user_stats(session["user_id"])
 
-    categories = [
-        {"name": "Bills",         "total": "₹2,500", "pct": 39},
-        {"name": "Shopping",      "total": "₹1,350", "pct": 21},
-        {"name": "Transport",     "total": "₹850",   "pct": 13},
-        {"name": "Health",        "total": "₹600",   "pct": 9},
-        {"name": "Entertainment", "total": "₹499",   "pct": 8},
-        {"name": "Food",          "total": "₹500",   "pct": 8},
-        {"name": "Other",         "total": "₹75",    "pct": 1},
-    ]
+    # --- SECTION D: category breakdown (Subagent 3) ---
+    categories = get_user_categories(session["user_id"])
 
     return render_template("profile.html", user=user, stats=stats,
                            expenses=expenses, categories=categories)
