@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="profile-page">
+  <div class="profile-inner">
+
+    <!-- Section 1 — User info card -->
+    <section class="profile-hero">
+      <div class="profile-avatar">
+        <span class="profile-avatar__initials">
+          {{ user.name.split()[0][0] }}{{ user.name.split()[-1][0] }}
+        </span>
+      </div>
+      <div class="profile-identity">
+        <h1 class="profile-identity__name">{{ user.name }}</h1>
+        <p class="profile-identity__email">{{ user.email }}</p>
+        <p class="profile-identity__since">
+          <i data-lucide="calendar" class="profile-icon"></i>
+          Member since {{ user.member_since }}
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 2 — Summary stats row -->
+    <section class="profile-stats">
+      <div class="profile-stat-card">
+        <i data-lucide="wallet" class="profile-stat-card__icon"></i>
+        <span class="profile-stat-card__label">Total Spent</span>
+        <span class="profile-stat-card__value">{{ stats.total_spent }}</span>
+      </div>
+      <div class="profile-stat-card">
+        <i data-lucide="list" class="profile-stat-card__icon"></i>
+        <span class="profile-stat-card__label">Transactions</span>
+        <span class="profile-stat-card__value">{{ stats.transaction_count }}</span>
+      </div>
+      <div class="profile-stat-card">
+        <i data-lucide="tag" class="profile-stat-card__icon"></i>
+        <span class="profile-stat-card__label">Top Category</span>
+        <span class="profile-stat-card__value">{{ stats.top_category }}</span>
+      </div>
+    </section>
+
+    <!-- Sections 3 + 4 — side-by-side grid -->
+    <div class="profile-bottom-grid">
+
+      <!-- Section 3 — Transaction history table -->
+      <section class="profile-section">
+        <h2 class="profile-section__heading">
+          <i data-lucide="clock" class="profile-icon"></i>
+          Recent Transactions
+        </h2>
+        <div class="profile-card">
+          <table class="txn-table">
+            <thead class="txn-table__head">
+              <tr>
+                <th class="txn-table__th">Date</th>
+                <th class="txn-table__th">Description</th>
+                <th class="txn-table__th">Category</th>
+                <th class="txn-table__th txn-table__th--right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in expenses %}
+              <tr class="txn-table__row">
+                <td class="txn-table__td txn-table__td--date">{{ expense.date }}</td>
+                <td class="txn-table__td">{{ expense.description }}</td>
+                <td class="txn-table__td">
+                  <span class="cat-badge cat-badge--{{ expense.category | lower | replace(' ', '-') }}">
+                    {{ expense.category }}
+                  </span>
+                </td>
+                <td class="txn-table__td txn-table__td--amount">{{ expense.amount }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 4 — Category breakdown -->
+      <section class="profile-section">
+        <h2 class="profile-section__heading">
+          <i data-lucide="pie-chart" class="profile-icon"></i>
+          Spending by Category
+        </h2>
+        <div class="profile-card profile-card--full-height">
+          <div class="cat-breakdown">
+            {% for cat in categories %}
+            <div class="cat-breakdown__row">
+              <div class="cat-breakdown__meta">
+                <span class="cat-breakdown__name">{{ cat.name }}</span>
+                <span class="cat-breakdown__total">{{ cat.total }}</span>
+              </div>
+              <div class="cat-breakdown__track">
+                <div
+                  class="cat-breakdown__fill cat-breakdown__fill--{{ cat.name | lower | replace(' ', '-') }}"
+                  style="--bar-pct: {{ cat.pct }}%">
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>lucide.createIcons();</script>
+{% endblock %}
