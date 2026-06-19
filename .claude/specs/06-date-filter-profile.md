@@ -1,9 +1,7 @@
 1 # Spec: Date Filter on Profile
        2
        3 ## Overview
-       4 Step 5 wired up all profile sections with live DB data. Step 6 adds a date-range filter to the profile page so users can narrow their transaction history, stats, and category breakdo
-         wn to a specific period (e.g. "June 2026" or "last 30 days"). The filter is submitted as query-string parameters on `GET /profile`, keeping all logic server-side with no JavaScript r
-         equired. This is the first interactive data-query feature in Spendly and establishes the pattern for filtering used in later steps.
+       4 Step 5 wired up all profile sections with live DB data. Step 6 adds a date-range filter to the profile page so users can narrow their transaction history, stats, and category breakdown to a specific period (e.g. "June 2026" or "last 30 days"). Step 7 add the filter buttons beside the date filter like All Time,This Month,Last 3 Months and Last 6 Months. The filter is submitted as query-string parameters on `GET /profile`, keeping all logic server-side with no JavaScript required. This is the first interactive data-query feature in Spendly and establishes the pattern for filtering used in later steps.
        5
        6 ## Depends on
        7 - Step 1 — Database setup (`expenses` table with `date` column in `YYYY-MM-DD` format)

@@ -64,19 +64,33 @@
     {% endif %}
 
     <form class="filter-form" method="GET" action="{{ url_for('profile') }}">
-      <div class="filter-form__fields">
-        <label class="filter-form__label" for="from_date">From</label>
-        <input class="filter-form__input" type="date" id="from_date"
-               name="from_date" value="{{ filter_from }}">
-        <label class="filter-form__label" for="to_date">To</label>
-        <input class="filter-form__input" type="date" id="to_date"
-               name="to_date" value="{{ filter_to }}">
+      <div class="quick-filter">
+        <a href="{{ url_for('profile') }}"
+           class="quick-filter__btn {% if not active_filter %}quick-filter__btn--active{% endif %}">
+          All Time
+        </a>
+        {% for label, (from_d, to_d) in quick_filters.items() %}
+        <a href="{{ url_for('profile', from_date=from_d, to_date=to_d) }}"
+           class="quick-filter__btn {% if filter_from == from_d and filter_to == to_d %}quick-filter__btn--active{% endif %}">
+          {{ label }}
+        </a>
+        {% endfor %}
       </div>
-      <div class="filter-form__actions">
-        <button class="filter-form__btn" type="submit">Apply</button>
-        {% if not active_filter %}
-        <a class="filter-form__clear" href="{{ url_for('profile') }}">Clear</a>
-        {% endif %}
+      <div class="filter-form__row">
+        <div class="filter-form__fields">
+          <label class="filter-form__label" for="from_date">From</label>
+          <input class="filter-form__input" type="date" id="from_date"
+                 name="from_date" value="{{ filter_from }}">
+          <label class="filter-form__label" for="to_date">To</label>
+          <input class="filter-form__input" type="date" id="to_date"
+                 name="to_date" value="{{ filter_to }}">
+        </div>
+        <div class="filter-form__actions">
+          <button class="filter-form__btn" type="submit">Apply</button>
+          {% if not active_filter %}
+          <a class="filter-form__clear" href="{{ url_for('profile') }}">Clear</a>
+          {% endif %}
+        </div>
       </div>
     </form>
 
@@ -85,10 +99,13 @@
 
       <!-- Section 3 — Transaction history table -->
       <section class="profile-section">
-        <h2 class="profile-section__heading">
-          <i data-lucide="clock" class="profile-icon"></i>
-          Recent Transactions
-        </h2>
+        <div class="profile-section__header">
+          <h2 class="profile-section__heading">
+            <i data-lucide="clock" class="profile-icon"></i>
+            Recent Transactions
+          </h2>
+          <a href="{{ url_for('add_expense_view') }}" class="btn-primary">+ Add Expense</a>
+        </div>
         <div class="profile-card">
           <table class="txn-table">
             <thead class="txn-table__head">

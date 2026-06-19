@@ -33,6 +33,12 @@
     gap: 0.75rem;
 }
 
+.profile-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .profile-section__heading {
     font-family: var(--font-display);
     font-size: 1.15rem;
@@ -338,6 +344,12 @@
     border-radius: var(--radius-md);
     padding: 1rem 1.5rem;
     display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filter-form__row {
+    display: flex;
     align-items: flex-end;
     gap: 1rem;
     flex-wrap: wrap;
@@ -444,4 +456,36 @@
     background: var(--paper-warm);
     color: var(--ink-muted);
     border: 1px solid var(--border);
+}
+
+/* ── Quick-filter shortcut row ────────────────────────────────────── */
+
+.quick-filter {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.quick-filter__btn {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+    background: var(--paper-card);
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.quick-filter__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.quick-filter__btn--active {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
 }
