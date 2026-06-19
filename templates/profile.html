@@ -4,7 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/lucide@0.441.0/dist/umd/lucide.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -47,6 +47,38 @@
         <span class="profile-stat-card__value">{{ stats.top_category }}</span>
       </div>
     </section>
+
+    <!-- Date filter -->
+    {% if filter_error %}
+    <p class="filter-msg filter-msg--error">{{ filter_error }}</p>
+    {% elif filter_hint %}
+    <p class="filter-msg filter-msg--hint">{{ filter_hint }}</p>
+    {% endif %}
+
+    {% if active_filter %}
+    <div class="filter-active-badge">
+      <i data-lucide="filter" class="profile-icon"></i>
+      Showing {{ filter_from_display }} — {{ filter_to_display }}
+      <a href="{{ url_for('profile') }}" class="filter-active-badge__clear">Clear</a>
+    </div>
+    {% endif %}
+
+    <form class="filter-form" method="GET" action="{{ url_for('profile') }}">
+      <div class="filter-form__fields">
+        <label class="filter-form__label" for="from_date">From</label>
+        <input class="filter-form__input" type="date" id="from_date"
+               name="from_date" value="{{ filter_from }}">
+        <label class="filter-form__label" for="to_date">To</label>
+        <input class="filter-form__input" type="date" id="to_date"
+               name="to_date" value="{{ filter_to }}">
+      </div>
+      <div class="filter-form__actions">
+        <button class="filter-form__btn" type="submit">Apply</button>
+        {% if not active_filter %}
+        <a class="filter-form__clear" href="{{ url_for('profile') }}">Clear</a>
+        {% endif %}
+      </div>
+    </form>
 
     <!-- Sections 3 + 4 — side-by-side grid -->
     <div class="profile-bottom-grid">

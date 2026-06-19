@@ -1,17 +1,28 @@
+import re
 from flask import Flask, render_template, request, redirect, url_for, abort, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import (
     get_db, init_db, seed_db, create_user, get_user_by_email,
-    get_user_by_id, _fmt_member_since,
+    get_user_by_id, _fmt_date, _fmt_member_since,
     get_user_expenses, get_user_stats, get_user_categories,
 )
 
 app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
 
+_DATE_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
+
 with app.app_context():
     init_db()
     seed_db()
+
+
+@app.after_request
+def set_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 
 # ------------------------------------------------------------------ #
@@ -91,7 +102,7 @@ def privacy():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     return redirect(url_for("landing"))
@@ -102,28 +113,59 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    # --- SECTION A: user lookup + stale session guard ---
     db_user = get_user_by_id(session["user_id"])
     if db_user is None:
         session.clear()
         return redirect(url_for("login"))
+
     user = {
         "name": db_user["name"],
         "email": db_user["email"],
         "member_since": _fmt_member_since(db_user["created_at"]),
     }
 
-    # --- SECTION B: transaction history (Subagent 1) ---
-    expenses = get_user_expenses(session["user_id"])
+    # --- Date filter ---
+    filter_from = request.args.get("from_date", "").strip()
+    filter_to = request.args.get("to_date", "").strip()
+    filter_error = None
+    filter_hint = None
+    active_filter = False
 
-    # --- SECTION C: summary stats (Subagent 2) ---
-    stats = get_user_stats(session["user_id"])
+    if filter_from and not _DATE_RE.match(filter_from):
+        filter_error = "Invalid start date. Use YYYY-MM-DD format."
+        filter_from = filter_to = ""
+    elif filter_to and not _DATE_RE.match(filter_to):
+        filter_error = "Invalid end date. Use YYYY-MM-DD format."
+        filter_from = filter_to = ""
+    elif bool(filter_from) != bool(filter_to):
+        filter_hint = "Please provide both a start and an end date."
+        filter_from = filter_to = ""
+    elif filter_from and filter_to:
+        if filter_from > filter_to:
+            filter_error = "Start date must be on or before the end date."
+            filter_from = filter_to = ""
+        else:
+            active_filter = True
 
-    # --- SECTION D: category breakdown (Subagent 3) ---
-    categories = get_user_categories(session["user_id"])
+    user_id = session["user_id"]
+    from_arg = filter_from if active_filter else None
+    to_arg = filter_to if active_filter else None
 
-    return render_template("profile.html", user=user, stats=stats,
-                           expenses=expenses, categories=categories)
+    expenses = get_user_expenses(user_id, from_arg, to_arg)
+    stats = get_user_stats(user_id, from_arg, to_arg)
+    categories = get_user_categories(user_id, from_arg, to_arg)
+
+    filter_from_display = _fmt_date(filter_from) if active_filter else ""
+    filter_to_display = _fmt_date(filter_to) if active_filter else ""
+
+    return render_template(
+        "profile.html",
+        user=user, stats=stats, expenses=expenses, categories=categories,
+        filter_from=filter_from, filter_to=filter_to,
+        filter_from_display=filter_from_display, filter_to_display=filter_to_display,
+        active_filter=active_filter,
+        filter_error=filter_error, filter_hint=filter_hint,
+    )
 
 
 @app.route("/expenses/add")

@@ -85,7 +85,7 @@ def test_login_clears_old_session(client):
 # --- GET /logout ---
 
 def test_logout_redirects_to_landing(client):
-    response = client.get("/logout")
+    response = client.post("/logout")
     assert response.status_code == 302
     assert response.location.endswith("/")
 
@@ -93,13 +93,13 @@ def test_logout_redirects_to_landing(client):
 def test_logout_clears_session(client):
     with client.session_transaction() as sess:
         sess["user_id"] = 42
-    client.get("/logout")
+    client.post("/logout")
     with client.session_transaction() as sess:
         assert "user_id" not in sess
 
 
 def test_logout_when_already_logged_out(client):
-    response = client.get("/logout")
+    response = client.post("/logout")
     assert response.status_code == 302
     assert response.location.endswith("/")
 

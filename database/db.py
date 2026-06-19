@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -81,6 +82,7 @@ def get_user_by_email(email):
     conn.close()
     return user
 
+
 def create_user(name, email, password_hash):
     conn = get_db()
     try:
@@ -112,26 +114,30 @@ def _fmt_amount(amount_float):
 
 
 def _fmt_date(date_str):
-    from datetime import datetime
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     return dt.strftime("%#d %b %Y")
 
 
 def _fmt_member_since(created_at_str):
-    from datetime import datetime
     dt = datetime.strptime(created_at_str, "%Y-%m-%d %H:%M:%S")
     return dt.strftime("%B %Y")
 
 
-# Stubs — replaced by parallel subagents
-def get_user_expenses(user_id):
+def _date_filter(from_date, to_date):
+    if from_date and to_date:
+        return " AND date BETWEEN ? AND ?", [from_date, to_date]
+    return "", []
+
+
+def get_user_expenses(user_id, from_date=None, to_date=None):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT date, description, category, amount FROM expenses "
-        "WHERE user_id = ? ORDER BY date DESC LIMIT 10",
-        (user_id,),
-    )
+    date_clause, date_params = _date_filter(from_date, to_date)
+    sql = ("SELECT date, description, category, amount FROM expenses "
+           "WHERE user_id = ?" + date_clause)
+    params = [user_id] + date_params
+    sql += " ORDER BY date DESC" if date_clause else " ORDER BY date DESC LIMIT 10"
+    cursor.execute(sql, params)
     rows = cursor.fetchall()
     conn.close()
     return [
@@ -145,20 +151,23 @@ def get_user_expenses(user_id):
     ]
 
 
-def get_user_stats(user_id):
+def get_user_stats(user_id, from_date=None, to_date=None):
     conn = get_db()
     cursor = conn.cursor()
+    date_clause, date_params = _date_filter(from_date, to_date)
+
     cursor.execute(
         "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt "
-        "FROM expenses WHERE user_id = ?",
-        (user_id,),
+        "FROM expenses WHERE user_id = ?" + date_clause,
+        [user_id] + date_params,
     )
     row = cursor.fetchone()
     total_float, count = row["total"], row["cnt"]
     cursor.execute(
         "SELECT category, SUM(amount) AS cat_total FROM expenses "
-        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
-        (user_id,),
+        "WHERE user_id = ?" + date_clause +
+        " GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+        [user_id] + date_params,
     )
     top_row = cursor.fetchone()
     conn.close()
@@ -169,12 +178,15 @@ def get_user_stats(user_id):
     }
 
 
-def get_user_categories(user_id):
+def get_user_categories(user_id, from_date=None, to_date=None):
     conn = get_db()
     cursor = conn.cursor()
+    date_clause, date_params = _date_filter(from_date, to_date)
+
     cursor.execute(
-        "SELECT COALESCE(SUM(amount), 0) AS grand_total FROM expenses WHERE user_id = ?",
-        (user_id,),
+        "SELECT COALESCE(SUM(amount), 0) AS grand_total FROM expenses "
+        "WHERE user_id = ?" + date_clause,
+        [user_id] + date_params,
     )
     grand_total = cursor.fetchone()["grand_total"]
     if grand_total == 0:
@@ -182,8 +194,9 @@ def get_user_categories(user_id):
         return []
     cursor.execute(
         "SELECT category, SUM(amount) AS cat_total FROM expenses "
-        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 7",
-        (user_id,),
+        "WHERE user_id = ?" + date_clause +
+        " GROUP BY category ORDER BY cat_total DESC LIMIT 7",
+        [user_id] + date_params,
     )
     rows = cursor.fetchall()
     conn.close()
@@ -195,4 +208,3 @@ def get_user_categories(user_id):
         }
         for row in rows
     ]
-

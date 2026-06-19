@@ -1,0 +1,2 @@
+- [Spendly DB Schema and Helper Functions](spendly_schema_and_helpers.md) — Session keys, flash strings, all db.py helpers, schema, route behaviours
+- [Spendly Test Fixture Patterns](spendly_fixture_patterns.md) — conftest.py pattern, _insert_user/_insert_expense helpers, session manipulation, encoding gotchas
