@@ -20,7 +20,9 @@
             </a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
-                    <a href="{{ url_for('logout') }}">Logout</a>
+                    <form method="POST" action="{{ url_for('logout') }}">
+                        <button type="submit" class="nav-logout-btn">Logout</button>
+                    </form>
                 {% else %}
                     <a href="{{ url_for('login') }}">Sign in</a>
                     <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
