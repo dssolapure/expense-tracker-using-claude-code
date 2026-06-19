@@ -1,16 +1,23 @@
 import re
+from datetime import date, timedelta
 from flask import Flask, render_template, request, redirect, url_for, abort, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import (
     get_db, init_db, seed_db, create_user, get_user_by_email,
     get_user_by_id, _fmt_date, _fmt_member_since,
     get_user_expenses, get_user_stats, get_user_categories,
+    add_expense,
 )
 
 app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
 
 _DATE_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
+
+EXPENSE_CATEGORIES = [
+    "Food", "Transport", "Bills", "Health",
+    "Entertainment", "Shopping", "Other",
+]
 
 with app.app_context():
     init_db()
@@ -158,6 +165,13 @@ def profile():
     filter_from_display = _fmt_date(filter_from) if active_filter else ""
     filter_to_display = _fmt_date(filter_to) if active_filter else ""
 
+    _today = date.today()
+    quick_filters = {
+        "This Month":    (_today.replace(day=1).isoformat(), _today.isoformat()),
+        "Last 3 Months": ((_today - timedelta(days=90)).isoformat(), _today.isoformat()),
+        "Last 6 Months": ((_today - timedelta(days=180)).isoformat(), _today.isoformat()),
+    }
+
     return render_template(
         "profile.html",
         user=user, stats=stats, expenses=expenses, categories=categories,
@@ -165,12 +179,58 @@ def profile():
         filter_from_display=filter_from_display, filter_to_display=filter_to_display,
         active_filter=active_filter,
         filter_error=filter_error, filter_hint=filter_hint,
+        quick_filters=quick_filters,
     )
 
 
-@app.route("/expenses/add")
-def add_expense():
-    return "Add expense — coming in Step 7"
+@app.route("/expenses/add", methods=["GET", "POST"])
+def add_expense_view():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template(
+            "add_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            form={},
+        )
+
+    # --- POST ---
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date        = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+
+    form = {"amount": amount_raw, "category": category,
+            "date": date, "description": description}
+
+    def fail(msg):
+        return render_template(
+            "add_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            error=msg,
+            form=form,
+        )
+
+    if not amount_raw:
+        return fail("Amount is required.")
+    try:
+        amount = float(amount_raw)
+    except ValueError:
+        return fail("Amount must be a number.")
+    if amount <= 0:
+        return fail("Amount must be greater than zero.")
+
+    if category not in EXPENSE_CATEGORIES:
+        return fail("Please select a valid category.")
+
+    if not date:
+        return fail("Date is required.")
+    if not _DATE_RE.match(date):
+        return fail("Invalid date. Use YYYY-MM-DD format.")
+
+    add_expense(session["user_id"], amount, category, date, description)
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")

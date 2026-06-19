@@ -77,6 +77,32 @@ Date-filter validation order in /profile route:
 `_fmt_date` uses `%#d` on Windows (no zero-padding) — use "Jun 2026" substring checks
 rather than "01 Jun 2026" to stay platform-portable in active-badge tests.
 
+## Add Expense Route Details (Step 07)
+
+Route function name: `add_expense_view` (avoids clash with db helper `add_expense`).
+Auth guard: checks `session.get("user_id")` only — does NOT call `get_user_by_id`; a stale
+session with a user_id not in DB will NOT redirect (renders the form with a 200).
+Only `/profile` performs the secondary DB lookup.
+
+Validation order in POST:
+1. Blank amount → "Amount is required."
+2. Non-numeric amount → "Amount must be a number."
+3. amount <= 0 → "Amount must be greater than zero."
+4. category not in EXPENSE_CATEGORIES → "Please select a valid category."
+5. Blank date → "Date is required."
+6. date not matching _DATE_RE → "Invalid date. Use YYYY-MM-DD format."
+7. All valid → `add_expense(user_id, amount, category, date, description or None)` → redirect /profile
+
+EXPENSE_CATEGORIES (defined once in app.py, passed to template):
+["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+
+Description: stripped; if empty string after strip → stored as None (add_expense uses `description or None`).
+Amount: stored as REAL (float); 0.01 is the minimum accepted value.
+Redirect on success: `url_for('profile')` → /profile.
+Form action: `url_for('add_expense_view')` → /expenses/add.
+On validation failure: re-renders add_expense.html with `error=msg` and `form={}` echoing
+  back all submitted fields (amount_raw, category, date, description).
+
 ## Route Behaviours
 
 - Login success redirects to `/profile`

@@ -178,6 +178,20 @@ def get_user_stats(user_id, from_date=None, to_date=None):
     }
 
 
+def add_expense(user_id, amount, category, date, description):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, category, date, description or None),
+    )
+    conn.commit()
+    expense_id = cursor.lastrowid
+    conn.close()
+    return expense_id
+
+
 def get_user_categories(user_id, from_date=None, to_date=None):
     conn = get_db()
     cursor = conn.cursor()
