@@ -489,3 +489,25 @@
     color: var(--accent);
     font-weight: 500;
 }
+
+/* ── Expense row actions ─────────────────────────────────────────── */
+
+.txn-table__td--actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.txn-edit-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+}
+
+.txn-edit-link:hover {
+    background: var(--accent);
+    color: var(--paper);
+}
