@@ -133,7 +133,7 @@ def get_user_expenses(user_id, from_date=None, to_date=None):
     conn = get_db()
     cursor = conn.cursor()
     date_clause, date_params = _date_filter(from_date, to_date)
-    sql = ("SELECT date, description, category, amount FROM expenses "
+    sql = ("SELECT id, date, description, category, amount FROM expenses "
            "WHERE user_id = ?" + date_clause)
     params = [user_id] + date_params
     sql += " ORDER BY date DESC" if date_clause else " ORDER BY date DESC LIMIT 10"
@@ -142,6 +142,7 @@ def get_user_expenses(user_id, from_date=None, to_date=None):
     conn.close()
     return [
         {
+            "id": row["id"],
             "date": _fmt_date(row["date"]),
             "description": row["description"],
             "category": row["category"],
@@ -190,6 +191,27 @@ def add_expense(user_id, amount, category, date, description):
     expense_id = cursor.lastrowid
     conn.close()
     return expense_id
+
+
+def get_expense_by_id(expense_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,))
+    expense = cursor.fetchone()
+    conn.close()
+    return expense
+
+
+def update_expense(expense_id, amount, category, date, description):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? "
+        "WHERE id = ?",
+        (amount, category, date, description or None, expense_id),
+    )
+    conn.commit()
+    conn.close()
 
 
 def get_user_categories(user_id, from_date=None, to_date=None):

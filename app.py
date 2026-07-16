@@ -6,7 +6,7 @@ from database.db import (
     get_db, init_db, seed_db, create_user, get_user_by_email,
     get_user_by_id, _fmt_date, _fmt_member_since,
     get_user_expenses, get_user_stats, get_user_categories,
-    add_expense,
+    add_expense, get_expense_by_id, update_expense,
 )
 
 app = Flask(__name__)
@@ -233,9 +233,68 @@ def add_expense_view():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id)
+    if expense is None:
+        abort(404)
+    if expense["user_id"] != session["user_id"]:
+        abort(403)
+
+    if request.method == "GET":
+        form = {
+            "amount": expense["amount"],
+            "category": expense["category"],
+            "date": expense["date"],        # raw YYYY-MM-DD — NOT _fmt_date()
+            "description": expense["description"] or "",
+        }
+        return render_template(
+            "edit_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            form=form,
+            expense_id=id,
+        )
+
+    # --- POST ---
+    amount_raw  = request.form.get("amount", "").strip()
+    category    = request.form.get("category", "").strip()
+    date_val    = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+
+    form = {"amount": amount_raw, "category": category,
+            "date": date_val, "description": description}
+
+    def fail(msg):
+        return render_template(
+            "edit_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            error=msg,
+            form=form,
+            expense_id=id,
+        )
+
+    if not amount_raw:
+        return fail("Amount is required.")
+    try:
+        amount = float(amount_raw)
+    except ValueError:
+        return fail("Amount must be a number.")
+    if amount <= 0:
+        return fail("Amount must be greater than zero.")
+
+    if category not in EXPENSE_CATEGORIES:
+        return fail("Please select a valid category.")
+
+    if not date_val:
+        return fail("Date is required.")
+    if not _DATE_RE.match(date_val):
+        return fail("Invalid date. Use YYYY-MM-DD format.")
+
+    update_expense(id, amount, category, date_val, description)
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
