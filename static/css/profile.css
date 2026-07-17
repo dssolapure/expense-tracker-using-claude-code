@@ -495,6 +495,10 @@
 .txn-table__td--actions {
     text-align: right;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
 }
 
 .txn-edit-link {
@@ -509,5 +513,30 @@
 
 .txn-edit-link:hover {
     background: var(--accent);
+    color: var(--paper);
+}
+
+/* ── Delete button ───────────────────────────────────────────────── */
+
+.txn-delete-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.txn-delete-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--danger);
+    background: transparent;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+    line-height: normal;
+}
+
+.txn-delete-btn:hover {
+    background: var(--danger);
     color: var(--paper);
 }
